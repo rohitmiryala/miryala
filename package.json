@@ -1,6 +1,6 @@
 {
   "name": "miryala",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "A starter template for Express.js projects with WebSocket and predefined structure",
   "main": "server.js",
   "bin": {
