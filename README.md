@@ -19,7 +19,7 @@
 
 Run the following command to scaffold a new project:
 ```bash
-`npx miryala`
+npx miryala
 ```
 - This command will:
  - Create the predefined folder structure.
