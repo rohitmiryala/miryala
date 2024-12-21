@@ -26,9 +26,14 @@ npx miryala
  - Generate server.js and app.js with basic setup.
  - Install express, ws, and nodemon automatically.
 
+## For Database Setup
+
+- If you select MongoDB, ensure that the `MONGO_URI` is specified in the `.env` file.
+- If you select MySQL, ensure that the `MYSQL_DB`, `MYSQL_USER`, `MYSQL_PASSWORD`, and `MYSQL_HOST` are provided in the `.env` file.
+
 ## Starting the Project
 
-- After the project is initialized, you can start the development server with:
+- After the project is initialized with database setup, you can start the development server with:
 ```bash
 npm run dev
 ```
