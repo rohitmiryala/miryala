@@ -4,7 +4,7 @@
   "description": "A starter template for Express.js projects with WebSocket and predefined structure",
   "main": "server.js",
   "bin": {
-    "miryala": "./cli.js"
+    "miryala": "./bin/index.js"
   },
   "scripts": {
     "start": "node server.js",

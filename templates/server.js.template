@@ -1,16 +1,11 @@
-const express = require('express');
+const app = require('./app');
 const WebSocket = require('ws');
+const connectDB = require('{{DB_FILE}}').connectDB;
 
-const app = express();
+require('dotenv').config();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Example route
-app.get('/', (req, res) => {
-    res.send('Welcome to the Express Starter Template');
-});
+// Start database connection
+connectDB();
 
 // Start the Express server
 const PORT = process.env.PORT || 3000;
@@ -18,7 +13,7 @@ const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-// Set up WebSocket server
+// WebSocket setup
 const wss = new WebSocket.Server({ noServer: true });
 
 wss.on('connection', (ws) => {
@@ -29,7 +24,6 @@ wss.on('connection', (ws) => {
     ws.send('Welcome to the WebSocket server');
 });
 
-// Integrate WebSocket into the Express server
 server.on('upgrade', (request, socket, head) => {
     wss.handleUpgrade(request, socket, head, (ws) => {
         wss.emit('connection', ws, request);
