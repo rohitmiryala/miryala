@@ -1,0 +1,14 @@
+import app from './app';
+import config from './config';
+{{DB_IMPORT}}
+
+const PORT = config.port || 4001;
+
+async function main() {
+  await connectDB();
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+main().catch(console.error);

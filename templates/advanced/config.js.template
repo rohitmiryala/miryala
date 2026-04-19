@@ -1,0 +1,13 @@
+require('dotenv').config();
+
+module.exports = {
+  port: process.env.PORT || 4001,
+  mongo_uri: process.env.MONGO_URI,
+  database_url: process.env.DATABASE_URL,
+  jwt_access_secret: process.env.JWT_ACCESS_SECRET || 'access_secret',
+  jwt_refresh_secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
+  jwt_access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN || '1d',
+  jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+  email_user: process.env.EMAIL_USER,
+  email_pass: process.env.EMAIL_PASS,
+};

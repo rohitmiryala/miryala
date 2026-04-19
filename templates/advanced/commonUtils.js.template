@@ -1,0 +1,27 @@
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+
+const generateOTP = (length = 6) =>
+  Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
+
+const generateRandomString = (length = 10) =>
+  crypto.randomBytes(length).toString('hex').slice(0, length);
+
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const isValidPhone = (phone) => /^\+?[0-9]{10,15}$/.test(phone);
+
+const maskSensitiveInfo = (value, type) => {
+  if (type === 'email') {
+    const [user, domain] = value.split('@');
+    return `${user.slice(0, 3)}***@${domain}`;
+  }
+  return value.slice(0, 3) + '****' + value.slice(-3);
+};
+
+const createToken = (payload, secret, expiresIn) =>
+  jwt.sign(payload, secret, { expiresIn });
+
+const verifyToken = (token, secret) => jwt.verify(token, secret);
+
+module.exports = { generateOTP, generateRandomString, isValidEmail, isValidPhone, maskSensitiveInfo, createToken, verifyToken };

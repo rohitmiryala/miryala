@@ -1,0 +1,21 @@
+const { AppError } = require('./AppError');
+const { ZodError } = require('zod');
+
+const globalErrorHandler = (err, _req, res, _next) => {
+  let statusCode = 500;
+  let message = 'Internal Server Error';
+
+  if (err instanceof AppError) {
+    statusCode = err.statusCode;
+    message = err.message;
+  } else if (err instanceof ZodError) {
+    statusCode = 400;
+    message = err.errors.map((e) => e.message).join(', ');
+  } else if (err instanceof Error) {
+    message = err.message;
+  }
+
+  res.status(statusCode).json({ success: false, message });
+};
+
+module.exports = { globalErrorHandler };

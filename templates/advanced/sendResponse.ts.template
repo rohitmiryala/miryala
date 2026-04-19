@@ -1,0 +1,18 @@
+import { Response } from 'express';
+
+interface SendResponseOptions<T> {
+  status: number;
+  success: boolean;
+  message: string;
+  data?: T;
+  meta?: object;
+}
+
+export const sendResponse = <T>(res: Response, options: SendResponseOptions<T>) => {
+  res.status(options.status).json({
+    success: options.success,
+    message: options.message,
+    ...(options.meta && { meta: options.meta }),
+    data: options.data,
+  });
+};

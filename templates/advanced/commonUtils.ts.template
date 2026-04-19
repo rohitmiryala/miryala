@@ -1,0 +1,28 @@
+import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
+import crypto from 'crypto';
+
+export const generateOTP = (length = 6): string =>
+  Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
+
+export const generateRandomString = (length = 10): string =>
+  crypto.randomBytes(length).toString('hex').slice(0, length);
+
+export const isValidEmail = (email: string): boolean =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+export const isValidPhone = (phone: string): boolean =>
+  /^\+?[0-9]{10,15}$/.test(phone);
+
+export const maskSensitiveInfo = (value: string, type: 'email' | 'phone'): string => {
+  if (type === 'email') {
+    const [user, domain] = value.split('@');
+    return `${user.slice(0, 3)}***@${domain}`;
+  }
+  return value.slice(0, 3) + '****' + value.slice(-3);
+};
+
+export const createToken = (payload: object, secret: string, expiresIn: string): string =>
+  jwt.sign(payload, secret, { expiresIn } as SignOptions);
+
+export const verifyToken = (token: string, secret: string): JwtPayload =>
+  jwt.verify(token, secret) as JwtPayload;

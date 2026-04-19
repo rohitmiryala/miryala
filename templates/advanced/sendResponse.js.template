@@ -1,0 +1,10 @@
+const sendResponse = (res, options) => {
+  res.status(options.status).json({
+    success: options.success,
+    message: options.message,
+    ...(options.meta && { meta: options.meta }),
+    data: options.data,
+  });
+};
+
+module.exports = { sendResponse };

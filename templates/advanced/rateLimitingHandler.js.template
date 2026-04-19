@@ -1,0 +1,23 @@
+const createRateLimiter = (options) => {
+  const requests = new Map();
+
+  return (req, res, next) => {
+    const key = req.ip || 'unknown';
+    const now = Date.now();
+    const entry = requests.get(key);
+
+    if (!entry || now > entry.resetAt) {
+      requests.set(key, { count: 1, resetAt: now + options.windowMs });
+      return next();
+    }
+
+    if (entry.count >= options.maxRequests) {
+      return res.status(429).json(options.message || { success: false, message: 'Too many requests' });
+    }
+
+    entry.count++;
+    next();
+  };
+};
+
+module.exports = { createRateLimiter };

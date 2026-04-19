@@ -1,0 +1,16 @@
+import { Request, Response } from 'express';
+import { catchAsync } from '../../utils/catchAsync';
+import { sendResponse } from '../../utils/sendResponse';
+import { DemoService } from './demo_module.service';
+
+const getAll = catchAsync(async (_req: Request, res: Response) => {
+  const result = await DemoService.getAll();
+  sendResponse(res, { status: 200, success: true, message: 'Fetched successfully', data: result });
+});
+
+const create = catchAsync(async (req: Request, res: Response) => {
+  const result = await DemoService.create(req.body);
+  sendResponse(res, { status: 201, success: true, message: 'Created successfully', data: result });
+});
+
+export const DemoController = { getAll, create };

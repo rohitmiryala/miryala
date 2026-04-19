@@ -1,0 +1,19 @@
+const jwt = require('jsonwebtoken');
+const config = require('../config');
+const { AppError } = require('../errors/AppError');
+
+const auth = (...roles) => {
+  return (req, _res, next) => {
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies?.accessToken;
+    if (!token) return next(new AppError(401, 'auth', 'Unauthorized'));
+
+    const decoded = jwt.verify(token, config.jwt_access_secret);
+    if (roles.length && !roles.includes(decoded.role)) {
+      return next(new AppError(403, 'auth', 'Forbidden'));
+    }
+    req.user = decoded;
+    next();
+  };
+};
+
+module.exports = { auth };
