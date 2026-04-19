@@ -1,20 +1,38 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-const ensureEnv = (key: string): string => {
-  const value = process.env[key];
-  if (!value) throw new Error(`Missing env variable: ${key}`);
-  return value;
+const config = {
+  // ─── Server ────────────────────────────────────────────────────────────────
+  port: process.env.PORT || 5000,
+  node_env: process.env.NODE_ENV || 'development',
+
+  // ─── Database ──────────────────────────────────────────────────────────────
+  mongo_database_url: process.env.MONGO_DATABASE_URL,
+  database_url: process.env.DATABASE_URL,
+
+  // ─── JWT ───────────────────────────────────────────────────────────────────
+  jwt_access_token_secret: process.env.JWT_ACCESS_TOKEN_SECRET as string,
+  jwt_refresh_token_secret: process.env.JWT_REFRESH_TOKEN_SECRET as string,
+  jwt_access_token_expires_in: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '15m',
+  jwt_refresh_token_expires_in: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || '30d',
+
+  // ─── Bcrypt ────────────────────────────────────────────────────────────────
+  bcrypt_salt_rounds: Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
+
+  // ─── Email ─────────────────────────────────────────────────────────────────
+  email: {
+    host: process.env.EMAIL_HOST_PROVIDER_NAME || 'smtp.gmail.com',
+    port: Number(process.env.EMAIL_HOST_PROVIDER_PORT) || 587,
+    sender_email: process.env.EMAIL_SENDER_EMAIL as string,
+    sender_app_pass: process.env.EMAIL_SENDER_EMAIL_APP_PASS as string,
+    sender_name: process.env.EMAIL_SENDER_NAME || 'App',
+    reply_to: process.env.EMAIL_REPLY_TO as string,
+    test_recipients: process.env.EMAIL_TEST_RECIPIENTS as string,
+  },
+
+  // ─── URLs ──────────────────────────────────────────────────────────────────
+  client_side_url: process.env.CLIENT_SIDE_URL || 'http://localhost:5173',
+  backend_side_url: process.env.BACKEND_SIDE_URL || 'http://localhost:5000',
 };
 
-export default {
-  port: process.env.PORT || 4001,
-  mongo_uri: process.env.MONGO_URI,
-  database_url: process.env.DATABASE_URL,
-  jwt_access_secret: process.env.JWT_ACCESS_SECRET || 'access_secret',
-  jwt_refresh_secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
-  jwt_access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN || '1d',
-  jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
-  email_user: process.env.EMAIL_USER,
-  email_pass: process.env.EMAIL_PASS,
-};
+export default config;

@@ -36,3 +36,4 @@ tests/
 # Miscellaneous
 *.tgz
 *.swp
+package-lock.json

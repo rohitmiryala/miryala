@@ -1,45 +1,97 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import winston from 'winston';
+import path from 'path';
+import fs from 'fs';
 
-/**
- * Simple logger utility
- * Provides structured logging with different levels
- */
-export const logger = {
-  /**
-   * Log informational messages
-   * @param message - The message to log
-   * @param meta - Optional metadata
-   */
-  info: (message: string, meta?: any) => {
-    console.log(`[INFO] ${message}`, meta || '');
-  },
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
-  /**
-   * Log error messages
-   * @param message - The error message
-   * @param error - Optional error object or metadata
-   */
-  error: (message: string, error?: any) => {
-    console.error(`[ERROR] ${message}`, error || '');
-  },
+const getMonthFolder = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+};
 
-  /**
-   * Log warning messages
-   * @param message - The warning message
-   * @param meta - Optional metadata
-   */
-  warn: (message: string, meta?: any) => {
-    console.warn(`[WARN] ${message}`, meta || '');
-  },
+const getDateFile = (): string => {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
 
-  /**
-   * Log debug messages (only in development)
-   * @param message - The debug message
-   * @param meta - Optional metadata
-   */
-  debug: (message: string, meta?: any) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[DEBUG] ${message}`, meta || '');
-    }
+const ensureDir = (dirPath: string): void => {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
   }
 };
+
+// ─── Dynamic Transport Factory ───────────────────────────────────────────────
+
+const createFileTransport = (level: 'combined' | 'error') => {
+  return new winston.transports.DailyRotateFile({
+    dirname: path.join(process.cwd(), 'logs', getMonthFolder()),
+    filename: `${getDateFile()}-${level}-%DATE%.log`,
+    datePattern: '',
+    maxFiles: '90d',
+    level: level === 'error' ? 'error' : undefined,
+    format: winston.format.combine(
+      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+      winston.format.errors({ stack: true }),
+      winston.format.json()
+    ),
+  });
+};
+
+// ─── Winston Logger ──────────────────────────────────────────────────────────
+
+const logFormat = winston.format.combine(
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.errors({ stack: true }),
+  winston.format.colorize({ all: true }),
+  winston.format.printf(({ timestamp, level, message, stack, ...meta }) => {
+    const metaStr = Object.keys(meta).length ? `\n${JSON.stringify(meta, null, 2)}` : '';
+    return `[${timestamp}] ${level}: ${stack || message}${metaStr}`;
+  })
+);
+
+const monthDir = path.join(process.cwd(), 'logs', getMonthFolder());
+ensureDir(monthDir);
+
+export const logger = winston.createLogger({
+  level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
+  transports: [
+    // Console output
+    new winston.transports.Console({ format: logFormat }),
+
+    // All logs → logs/YYYY-MM/YYYY-MM-DD-combined.log
+    new winston.transports.File({
+      filename: path.join(monthDir, `${getDateFile()}-combined.log`),
+      format: winston.format.combine(
+        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        winston.format.errors({ stack: true }),
+        winston.format.json()
+      ),
+    }),
+
+    // Error logs → logs/YYYY-MM/YYYY-MM-DD-error.log
+    new winston.transports.File({
+      filename: path.join(monthDir, `${getDateFile()}-error.log`),
+      level: 'error',
+      format: winston.format.combine(
+        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        winston.format.errors({ stack: true }),
+        winston.format.json()
+      ),
+    }),
+  ],
+  exceptionHandlers: [
+    new winston.transports.File({
+      filename: path.join(monthDir, `${getDateFile()}-exceptions.log`),
+    }),
+  ],
+  rejectionHandlers: [
+    new winston.transports.File({
+      filename: path.join(monthDir, `${getDateFile()}-rejections.log`),
+    }),
+  ],
+});

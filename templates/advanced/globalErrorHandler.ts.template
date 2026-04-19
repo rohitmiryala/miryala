@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from './AppError';
 import { ZodError } from 'zod';
 import { TErrorSource } from '../interfaces/errors';
+import { logger } from '../utils/logger';
 import handleMongooseCastError from './handleMongooseCastError';
 import handleMongooseDuplicateError from './handleMongooseDuplicateError';
 import handleMongooseValidationError from './handleMongooseValidationError';
@@ -91,6 +92,12 @@ export const globalErrorHandler = (err: unknown, _req: Request, res: Response, _
       }
     ];
   }
+
+  // Log all errors
+  logger.error(`[${statusCode}] ${message}`, {
+    errorSources,
+    stack: (err as Error)?.stack,
+  });
 
   res.status(statusCode).json({
     success: false,

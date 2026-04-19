@@ -1,5 +1,6 @@
 import app from './app';
 import config from './config';
+import { logger } from './utils/logger';
 {{DB_IMPORT}}
 
 const PORT = config.port || 4001;
@@ -7,8 +8,10 @@ const PORT = config.port || 4001;
 async function main() {
   await connectDB();
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    logger.info(`🚀 Server running on port ${PORT}`);
+    logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`📁 Logs stored in: logs/${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}/`);
   });
 }
 
-main().catch(console.error);
+main().catch((err) => logger.error('Failed to start server', err));

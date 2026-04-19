@@ -1,17 +1,33 @@
 import nodemailer from 'nodemailer';
 import config from '../config';
 import { TEmailFormat } from '../interfaces/emailFormat';
+import { logger } from './logger';
 
-export const sendEmail = async (to: string, emailData: TEmailFormat) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: config.email_user, pass: config.email_pass },
+const createTransporter = () =>
+  nodemailer.createTransport({
+    host: config.email.host,
+    port: config.email.port,
+    secure: config.email.port === 465,
+    auth: {
+      user: config.email.sender_email,
+      pass: config.email.sender_app_pass,
+    },
   });
-  await transporter.sendMail({
-    from: config.email_user,
-    to,
-    subject: emailData.subject,
-    html: emailData.emailBody,
-    ...(emailData.text && { text: emailData.text }),
-  });
+
+export const sendEmail = async (to: string, emailData: TEmailFormat): Promise<void> => {
+  try {
+    const transporter = createTransporter();
+    await transporter.sendMail({
+      from: `"${config.email.sender_name}" <${config.email.sender_email}>`,
+      to,
+      replyTo: config.email.reply_to,
+      subject: emailData.subject,
+      html: emailData.emailBody,
+      ...(emailData.text && { text: emailData.text }),
+    });
+    logger.info(`Email sent to ${to} | Subject: ${emailData.subject}`);
+  } catch (error) {
+    logger.error(`Failed to send email to ${to}`, error);
+    throw error;
+  }
 };

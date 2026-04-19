@@ -1,11 +1,18 @@
 import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
+import config from '../config';
+
+// ─── OTP ─────────────────────────────────────────────────────────────────────
 
 export const generateOTP = (length = 6): string =>
   Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
 
+// ─── Random ──────────────────────────────────────────────────────────────────
+
 export const generateRandomString = (length = 10): string =>
   crypto.randomBytes(length).toString('hex').slice(0, length);
+
+// ─── Validation ──────────────────────────────────────────────────────────────
 
 export const isValidEmail = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -13,7 +20,20 @@ export const isValidEmail = (email: string): boolean =>
 export const isValidPhone = (phone: string): boolean =>
   /^\+?[0-9]{10,15}$/.test(phone);
 
-export const maskSensitiveInfo = (value: string, type: 'email' | 'phone'): string => {
+export const check_Input_isPhone_Or_isEmail = (
+  input: string
+): { type: 'email' | 'phone'; value: string } => {
+  if (isValidEmail(input)) return { type: 'email', value: input };
+  if (isValidPhone(input)) return { type: 'phone', value: input };
+  throw new Error('Input is neither a valid email nor phone number');
+};
+
+// ─── Masking ─────────────────────────────────────────────────────────────────
+
+export const maskSensitiveInfo = (
+  value: string,
+  type: 'email' | 'phone'
+): string => {
   if (type === 'email') {
     const [user, domain] = value.split('@');
     return `${user.slice(0, 3)}***@${domain}`;
@@ -21,8 +41,32 @@ export const maskSensitiveInfo = (value: string, type: 'email' | 'phone'): strin
   return value.slice(0, 3) + '****' + value.slice(-3);
 };
 
-export const createToken = (payload: object, secret: string, expiresIn: string): string =>
-  jwt.sign(payload, secret, { expiresIn } as SignOptions);
+// ─── JWT ─────────────────────────────────────────────────────────────────────
+
+export const createToken = (
+  payload: object,
+  secret: string,
+  expiresIn: string
+): string => jwt.sign(payload, secret, { expiresIn } as SignOptions);
 
 export const verifyToken = (token: string, secret: string): JwtPayload =>
   jwt.verify(token, secret) as JwtPayload;
+
+export const createAccessToken = (payload: object): string =>
+  createToken(
+    payload,
+    config.jwt_access_token_secret,
+    config.jwt_access_token_expires_in
+  );
+
+export const createRefreshToken = (payload: object): string =>
+  createToken(
+    payload,
+    config.jwt_refresh_token_secret,
+    config.jwt_refresh_token_expires_in
+  );
+
+// ─── Transaction ID ──────────────────────────────────────────────────────────
+
+export const generateTransactionId = (length = 12): string =>
+  crypto.randomBytes(length).toString('hex').toUpperCase().slice(0, length);

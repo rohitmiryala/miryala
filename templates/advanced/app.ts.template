@@ -5,21 +5,31 @@ import routers from './routers';
 import { globalErrorHandler } from './errors/globalErrorHandler';
 import { notFound } from './middlewares/notFound';
 import { bigIntSerializer } from './middlewares/bigIntSerializer';
+import { morganMiddleware, captureResponseBody } from './middlewares/morganMiddleware';
+import config from './config';
 
 const app: Application = express();
 
-app.use(cors({ origin: true, credentials: true }));
+// ─── Core Middlewares ────────────────────────────────────────────────────────
+app.use(cors({ origin: config.client_side_url, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(bigIntSerializer);
 
+// ─── Logger Middlewares ──────────────────────────────────────────────────────
+app.use(captureResponseBody);
+app.use(morganMiddleware);
+
+// ─── Health Check ────────────────────────────────────────────────────────────
 app.get('/', (_req: Request, res: Response) => {
   res.json({ success: true, message: 'Server is running' });
 });
 
+// ─── API Routes ──────────────────────────────────────────────────────────────
 app.use('/api/v1', routers);
 
+// ─── Error Handlers ──────────────────────────────────────────────────────────
 app.use(globalErrorHandler as unknown as express.ErrorRequestHandler);
 app.use(notFound as unknown as express.RequestHandler);
 
