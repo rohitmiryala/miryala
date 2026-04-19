@@ -1,5 +1,26 @@
-node_modules/
+# ─── Never publish these ─────────────────────────────────────────────────────
 .git/
 .gitignore
-*.log
 .env
+.env.*
+*.log
+*.swp
+*.tgz
+
+# ─── Dev tooling ─────────────────────────────────────────────────────────────
+scripts/
+.vscode/
+.idea/
+coverage/
+test/
+tests/
+
+# ─── Docs (internal) ─────────────────────────────────────────────────────────
+miryala-docs/
+
+# ─── Only these are published (see "files" in package.json) ──────────────────
+# bin/        ✅ published (obfuscated)
+# lib/        ✅ published (obfuscated)
+# templates/  ✅ published
+# README.md   ✅ published
+# LICENSE     ✅ published
