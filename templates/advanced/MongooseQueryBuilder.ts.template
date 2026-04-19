@@ -1,0 +1,58 @@
+import { Query } from 'mongoose';
+
+class QueryBuilder<T> {
+  public modelQuery: Query<T[], T>;
+  private query: Record<string, unknown>;
+
+  constructor(modelQuery: Query<T[], T>, query: Record<string, unknown>) {
+    this.modelQuery = modelQuery;
+    this.query = query;
+  }
+
+  search(searchFields: string[]) {
+    const search = this.query.search as string;
+    if (search) {
+      this.modelQuery = this.modelQuery.find({
+        $or: searchFields.map((f) => ({ [f]: { $regex: search, $options: 'i' } })),
+      } as any);
+    }
+    return this;
+  }
+
+  filter() {
+    const exclude = ['search', 'sort', 'page', 'limit', 'fields'];
+    const filters = Object.fromEntries(
+      Object.entries(this.query).filter(([k]) => !exclude.includes(k)),
+    );
+    this.modelQuery = this.modelQuery.find(filters as any);
+    return this;
+  }
+
+  sort() {
+    const sort = (this.query.sort as string)?.split(',').join(' ') || '-createdAt';
+    this.modelQuery = this.modelQuery.sort(sort);
+    return this;
+  }
+
+  paginate() {
+    const page = Number(this.query.page) || 1;
+    const limit = Number(this.query.limit) || 10;
+    this.modelQuery = this.modelQuery.skip((page - 1) * limit).limit(limit);
+    return this;
+  }
+
+  fields() {
+    const fields = (this.query.fields as string)?.split(',').join(' ') || '-__v';
+    this.modelQuery = this.modelQuery.select(fields);
+    return this;
+  }
+
+  async countTotal() {
+    const total = await this.modelQuery.model.countDocuments(this.modelQuery.getFilter());
+    const page = Number(this.query.page) || 1;
+    const limit = Number(this.query.limit) || 10;
+    return { total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+}
+
+export default QueryBuilder;

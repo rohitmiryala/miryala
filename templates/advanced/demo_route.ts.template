@@ -1,0 +1,7 @@
+import { Router } from 'express';
+import { DemoController } from './demo_module.controller';
+
+export const demoRouter = Router();
+
+demoRouter.get('/', DemoController.getAll);
+demoRouter.post('/', DemoController.create);

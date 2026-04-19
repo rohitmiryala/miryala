@@ -1,0 +1,20 @@
+import { Request, Response, NextFunction } from 'express';
+import { AppError } from './AppError';
+import { ZodError } from 'zod';
+
+export const globalErrorHandler = (err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  let statusCode = 500;
+  let message = 'Internal Server Error';
+
+  if (err instanceof AppError) {
+    statusCode = err.statusCode;
+    message = err.message;
+  } else if (err instanceof ZodError) {
+    statusCode = 400;
+    message = err.errors.map((e) => e.message).join(', ');
+  } else if (err instanceof Error) {
+    message = err.message;
+  }
+
+  res.status(statusCode).json({ success: false, message });
+};

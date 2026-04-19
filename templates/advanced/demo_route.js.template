@@ -1,0 +1,9 @@
+const { Router } = require('express');
+const { DemoController } = require('./demo_module.controller');
+
+const demoRouter = Router();
+
+demoRouter.get('/', DemoController.getAll);
+demoRouter.post('/', DemoController.create);
+
+module.exports = { demoRouter };

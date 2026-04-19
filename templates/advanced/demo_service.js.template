@@ -1,0 +1,7 @@
+const { DemoModel } = require('./demo_module.model');
+
+const getAll = async () => DemoModel.find();
+const create = async (data) => DemoModel.create(data);
+
+const DemoService = { getAll, create };
+module.exports = { DemoService };

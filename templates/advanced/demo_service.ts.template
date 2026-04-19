@@ -1,0 +1,7 @@
+import { DemoModel } from './demo_module.model';
+
+const getAll = async () => DemoModel.find();
+
+const create = async (data: object) => DemoModel.create(data);
+
+export const DemoService = { getAll, create };

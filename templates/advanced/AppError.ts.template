@@ -1,0 +1,11 @@
+export class AppError extends Error {
+  statusCode: number;
+  path: string;
+
+  constructor(statusCode: number, path: string, message: string) {
+    super(message);
+    this.statusCode = statusCode;
+    this.path = path;
+    Error.captureStackTrace(this, this.constructor);
+  }
+}

@@ -1,8 +1,8 @@
 {
   "name": "miryala",
-  "version": "2.0.7",
-  "description": "A starter template for Express.js projects with WebSocket and predefined structure",
-  "main": "server.js",
+  "version": "2.1.0",
+  "description": "A production-ready TypeScript Express.js backend generator with MongoDB or PostgreSQL support",
+  "main": "bin/index.js",
   "bin": {
     "miryala": "bin/index.js"
   },
@@ -12,11 +12,18 @@
   },
   "keywords": [
     "express",
+    "typescript",
     "starter",
     "template",
     "nodejs starter template",
     "starter template",
-    "websocket",
+    "backend generator",
+    "mongodb",
+    "postgresql",
+    "prisma",
+    "mongoose",
+    "jwt",
+    "authentication",
     "predefined",
     "structure",
     "nodejs",
@@ -25,10 +32,7 @@
   "author": "Rohit Satyanarayana Miryala",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.21.2",
-    "ws": "^8.18.0"
+    "inquirer": "^8.2.6"
   },
-  "devDependencies": {
-    "nodemon": "^3.1.9"
-  }
+  "devDependencies": {}
 }

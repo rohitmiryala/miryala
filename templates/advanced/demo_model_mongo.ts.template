@@ -1,0 +1,11 @@
+import { Schema, model } from 'mongoose';
+
+const demoSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    description: { type: String },
+  },
+  { timestamps: true },
+);
+
+export const DemoModel = model('Demo', demoSchema);

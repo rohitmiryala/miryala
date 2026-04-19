@@ -1,0 +1,18 @@
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import config from '../config';
+import { AppError } from '../errors/AppError';
+
+export const auth = (...roles: string[]) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies?.accessToken;
+    if (!token) return next(new AppError(401, 'auth', 'Unauthorized'));
+
+    const decoded = jwt.verify(token, config.jwt_access_secret) as jwt.JwtPayload & { role: string };
+    if (roles.length && !roles.includes(decoded.role)) {
+      return next(new AppError(403, 'auth', 'Forbidden'));
+    }
+    req.user = decoded as any;
+    next();
+  };
+};

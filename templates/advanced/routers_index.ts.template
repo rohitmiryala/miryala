@@ -1,0 +1,12 @@
+import { Router } from 'express';
+import { demoRouter } from '../modules/demo_module/demo_module.route';
+
+const router = Router();
+
+const moduleRoutes = [
+  { path: '/demo', route: demoRouter },
+];
+
+moduleRoutes.forEach(({ path, route }) => router.use(path, route));
+
+export default router;

@@ -1,0 +1,57 @@
+class PrismaQueryBuilder {
+  constructor(model, query) {
+    this.model = model;
+    this.query = query;
+    this.where = {};
+    this.selectFields = null;
+    this.includeRelations = null;
+    this.secretFields = [];
+  }
+
+  setBaseQuery(conditions) { this.where = { ...this.where, ...conditions }; return this; }
+  setSecretFields(fields) { this.secretFields = fields; return this; }
+
+  search(searchFields) {
+    const search = this.query.search;
+    if (search) this.where.OR = searchFields.map((f) => ({ [f]: { contains: search, mode: 'insensitive' } }));
+    return this;
+  }
+
+  filter() {
+    const exclude = ['search', 'sort', 'page', 'limit', 'fields'];
+    Object.entries(this.query).filter(([k]) => !exclude.includes(k)).forEach(([k, v]) => { this.where[k] = v; });
+    return this;
+  }
+
+  sort() { return this; }
+  paginate() { return this; }
+
+  fields() {
+    const fields = this.query.fields;
+    if (fields) this.selectFields = Object.fromEntries(fields.split(',').filter((f) => !this.secretFields.includes(f)).map((f) => [f, true]));
+    return this;
+  }
+
+  include(relations) { this.includeRelations = relations; return this; }
+
+  async execute() {
+    const page = Number(this.query.page) || 1;
+    const limit = Number(this.query.limit) || 10;
+    return this.model.findMany({
+      where: this.where,
+      skip: (page - 1) * limit,
+      take: limit,
+      ...(this.selectFields && { select: this.selectFields }),
+      ...(this.includeRelations && { include: this.includeRelations }),
+    });
+  }
+
+  async countTotal() {
+    const total = await this.model.count({ where: this.where });
+    const page = Number(this.query.page) || 1;
+    const limit = Number(this.query.limit) || 10;
+    return { total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+}
+
+module.exports = PrismaQueryBuilder;

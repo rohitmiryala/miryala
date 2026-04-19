@@ -1,47 +1,58 @@
 #!/usr/bin/env node
 
-const readline = require('readline');
-const { setupDatabase } = require('../lib/database');
-const { createFolders, createFiles } = require('../lib/filesystem');
-const { createPackageJson } = require('../lib/package');
-const { installDependencies } = require('../lib/dependencies');
+const inquirer = require('inquirer');
+const { createAdvancedStructure } = require('../lib/filesystem');
+const { createAdvancedPackageJson } = require('../lib/package');
+const { installAdvancedDependencies } = require('../lib/dependencies');
 
-const initProject = () => {
-    console.log('Initializing Express project...');
+const initProject = async () => {
+    console.log('\n🚀 Welcome to Miryala - Advanced TypeScript Express.js Backend Generator\n');
 
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
+    try {
+        const answers = await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'database',
+                message: 'Which database would you like to use?',
+                choices: [
+                    {
+                        name: '🍃 MongoDB (with Mongoose)',
+                        value: 'mongodb',
+                        short: 'MongoDB'
+                    },
+                    {
+                        name: '🐘 PostgreSQL (with Prisma)',
+                        value: 'postgresql',
+                        short: 'PostgreSQL'
+                    }
+                ],
+                default: 'mongodb'
+            }
+        ]);
 
-    rl.question('Which database would you like to use? (mongodb/mysql): ', async (dbChoice) => {
-        const validChoices = ['mongodb', 'mysql'];
-        if (!validChoices.includes(dbChoice.toLowerCase())) {
-            console.log('Invalid choice. Exiting setup.');
-            rl.close();
-            return;
+        const dbChoice = answers.database;
+
+        console.log(`\n✨ Creating project structure with ${dbChoice.toUpperCase()}...\n`);
+
+        await createAdvancedStructure(dbChoice);
+        createAdvancedPackageJson(dbChoice);
+        installAdvancedDependencies(dbChoice);
+
+        console.log('\n✅ Setup complete!\n');
+        console.log('📝 Next steps:');
+        console.log('   1. Update your .env file with database credentials');
+        if (dbChoice === 'postgresql') {
+            console.log('   2. Run "npx prisma migrate dev" to create your database schema');
         }
-
-        
-
-        // Create folders and files
-        createFolders(['controllers', 'middlewares', 'models', 'services', 'utils', 'routes', 'db']);
-
-        // Setup database and get dependencies
-        const dbDependencies = await setupDatabase(dbChoice.toLowerCase());
-        
-        createFiles(dbChoice.toLowerCase());
-
-        // Create package.json
-        createPackageJson(dbDependencies);
-
-        // Install dependencies
-        installDependencies(dbDependencies);
-
-        console.log('Setup complete! Use "npm run dev" to start your project.');
-        rl.close();
-    });
+        console.log(`   ${dbChoice === 'postgresql' ? '3' : '2'}. Run "npm run dev" to start development server\n`);
+    } catch (error) {
+        if (error.isTtyError) {
+            console.error('\n❌ Prompt couldn\'t be rendered in the current environment');
+        } else {
+            console.error('\n❌ An error occurred:', error.message);
+        }
+        process.exit(1);
+    }
 };
 
-// Run the script
 initProject();
