@@ -1,20 +1,101 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './AppError';
 import { ZodError } from 'zod';
+import { TErrorSource } from '../interfaces/errors';
+import handleMongooseCastError from './handleMongooseCastError';
+import handleMongooseDuplicateError from './handleMongooseDuplicateError';
+import handleMongooseValidationError from './handleMongooseValidationError';
+import handlePrismaCastError from './handlePrismaCastError';
+import handlePrismaDuplicateError from './handlePrismaDuplicateError';
+import handlePrismaValidationError from './handlePrismaValidationError';
 
 export const globalErrorHandler = (err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   let statusCode = 500;
   let message = 'Internal Server Error';
+  let errorSources: TErrorSource[] = [
+    {
+      path: '',
+      message: 'Something went wrong'
+    }
+  ];
 
+  // Handle AppError
   if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
-  } else if (err instanceof ZodError) {
+    errorSources = [
+      {
+        path: err.path,
+        message: err.message
+      }
+    ];
+  }
+  // Handle Zod Validation Error
+  else if (err instanceof ZodError) {
     statusCode = 400;
-    message = err.errors.map((e) => e.message).join(', ');
-  } else if (err instanceof Error) {
+    message = 'Validation Error';
+    errorSources = err.errors.map((issue) => ({
+      path: issue.path.join('.'),
+      message: issue.message
+    }));
+  }
+  // Handle Mongoose CastError
+  else if (err?.constructor?.name === 'CastError') {
+    const simplified = handleMongooseCastError(err as any);
+    statusCode = simplified.statusCode;
+    message = simplified.message;
+    errorSources = simplified.errorSources;
+  }
+  // Handle Mongoose ValidationError
+  else if (err?.constructor?.name === 'ValidationError') {
+    const simplified = handleMongooseValidationError(err as any);
+    statusCode = simplified.statusCode;
+    message = simplified.message;
+    errorSources = simplified.errorSources;
+  }
+  // Handle Mongoose Duplicate Key Error (11000)
+  else if ((err as any)?.code === 11000) {
+    const simplified = handleMongooseDuplicateError(err);
+    statusCode = simplified.statusCode;
+    message = simplified.message;
+    errorSources = simplified.errorSources;
+  }
+  // Handle Prisma Unique Constraint Error (P2002)
+  else if ((err as any)?.code === 'P2002') {
+    const simplified = handlePrismaDuplicateError(err);
+    statusCode = simplified.statusCode;
+    message = simplified.message;
+    errorSources = simplified.errorSources;
+  }
+  // Handle Prisma Validation Error (P2000, P2001, etc.)
+  else if ((err as any)?.code?.startsWith('P20')) {
+    const simplified = handlePrismaValidationError(err);
+    statusCode = simplified.statusCode;
+    message = simplified.message;
+    errorSources = simplified.errorSources;
+  }
+  // Handle Prisma Cast Error
+  else if ((err as any)?.code === 'P2023') {
+    const simplified = handlePrismaCastError(err);
+    statusCode = simplified.statusCode;
+    message = simplified.message;
+    errorSources = simplified.errorSources;
+  }
+  // Handle Generic Error
+  else if (err instanceof Error) {
     message = err.message;
+    errorSources = [
+      {
+        path: '',
+        message: err.message
+      }
+    ];
   }
 
-  res.status(statusCode).json({ success: false, message });
+  res.status(statusCode).json({
+    success: false,
+    message,
+    errorSources,
+    stack: process.env.NODE_ENV === 'development' ? (err as Error)?.stack : undefined
+  });
 };

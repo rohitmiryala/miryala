@@ -1,0 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { TErrorSource, TGenericErrorResponse } from '../interfaces/errors';
+
+/**
+ * Handle Prisma CastError (invalid data type)
+ * @param err - Prisma error object
+ * @returns Formatted error response
+ */
+const handlePrismaCastError = (err: any): TGenericErrorResponse => {
+  const errorSources: TErrorSource[] = [
+    {
+      path: err.meta?.target || 'unknown',
+      message: err.message || 'Invalid data type provided'
+    }
+  ];
+
+  return {
+    statusCode: 400,
+    message: 'Invalid data format',
+    errorSources
+  };
+};
+
+export default handlePrismaCastError;

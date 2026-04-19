@@ -3,3 +3,7 @@ dist/
 .env
 generated/
 *.log
+uploads/images/*
+uploads/videos/*
+!uploads/images/.gitkeep
+!uploads/videos/.gitkeep

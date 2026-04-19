@@ -1,10 +1,17 @@
 import nodemailer from 'nodemailer';
 import config from '../config';
+import { TEmailFormat } from '../interfaces/emailFormat';
 
-export const sendEmail = async (to: string, subject: string, html: string) => {
+export const sendEmail = async (to: string, emailData: TEmailFormat) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: { user: config.email_user, pass: config.email_pass },
   });
-  await transporter.sendMail({ from: config.email_user, to, subject, html });
+  await transporter.sendMail({
+    from: config.email_user,
+    to,
+    subject: emailData.subject,
+    html: emailData.emailBody,
+    ...(emailData.text && { text: emailData.text }),
+  });
 };

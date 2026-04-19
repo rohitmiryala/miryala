@@ -1,6 +1,6 @@
 {
   "name": "miryala",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "A production-ready TypeScript Express.js backend generator with MongoDB or PostgreSQL support",
   "main": "bin/index.js",
   "bin": {

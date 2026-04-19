@@ -1,0 +1,45 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
+ * Simple logger utility
+ * Provides structured logging with different levels
+ */
+export const logger = {
+  /**
+   * Log informational messages
+   * @param message - The message to log
+   * @param meta - Optional metadata
+   */
+  info: (message: string, meta?: any) => {
+    console.log(`[INFO] ${message}`, meta || '');
+  },
+
+  /**
+   * Log error messages
+   * @param message - The error message
+   * @param error - Optional error object or metadata
+   */
+  error: (message: string, error?: any) => {
+    console.error(`[ERROR] ${message}`, error || '');
+  },
+
+  /**
+   * Log warning messages
+   * @param message - The warning message
+   * @param meta - Optional metadata
+   */
+  warn: (message: string, meta?: any) => {
+    console.warn(`[WARN] ${message}`, meta || '');
+  },
+
+  /**
+   * Log debug messages (only in development)
+   * @param message - The debug message
+   * @param meta - Optional metadata
+   */
+  debug: (message: string, meta?: any) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[DEBUG] ${message}`, meta || '');
+    }
+  }
+};

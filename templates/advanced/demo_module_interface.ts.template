@@ -1,0 +1,19 @@
+/**
+ * Demo Module Interface
+ * Defines TypeScript types for demo module
+ */
+export type TDemoModule = {
+  id?: string;
+  _id?: string;
+  name: string;
+  description?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+export type TCreateDemoModule = {
+  name: string;
+  description?: string;
+};
+
+export type TUpdateDemoModule = Partial<TCreateDemoModule>;

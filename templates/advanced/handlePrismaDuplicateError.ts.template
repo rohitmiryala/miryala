@@ -1,0 +1,27 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { TErrorSource, TGenericErrorResponse } from '../interfaces/errors';
+
+/**
+ * Handle Prisma unique constraint violation (P2002)
+ * @param err - Prisma error object
+ * @returns Formatted error response
+ */
+const handlePrismaDuplicateError = (err: any): TGenericErrorResponse => {
+  const target = err.meta?.target || [];
+  const fieldName = Array.isArray(target) ? target.join(', ') : 'unknown_field';
+  
+  const errorSources: TErrorSource[] = [
+    {
+      path: fieldName,
+      message: `${fieldName} already exists!`
+    }
+  ];
+
+  return {
+    statusCode: 409,
+    message: 'Duplicate entry violation',
+    errorSources
+  };
+};
+
+export default handlePrismaDuplicateError;

@@ -1,0 +1,22 @@
+/**
+ * Demo Module Utilities
+ * Contains utility functions specific to demo module
+ */
+
+/**
+ * Sanitize demo module input
+ * @param input - Raw input string
+ * @returns Sanitized string
+ */
+export const sanitizeDemoInput = (input: string): string => {
+  return input.trim().replace(/[<>]/g, '');
+};
+
+/**
+ * Check if demo module name is valid
+ * @param name - Name to validate
+ * @returns Boolean indicating validity
+ */
+export const isValidDemoName = (name: string): boolean => {
+  return name.trim().length > 0 && name.trim().length <= 100;
+};

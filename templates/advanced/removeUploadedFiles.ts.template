@@ -1,0 +1,136 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import fs from 'fs/promises';
+import path from 'path';
+
+/**
+ * Remove a single uploaded file
+ * @param filePath - Path to the file to remove
+ * @returns Promise that resolves when file is removed or rejects on error
+ */
+export const removeSingleUploadedFile = async (filePath: string): Promise<void> => {
+  try {
+    // Check if file exists before attempting to remove
+    await fs.access(filePath, fs.constants.F_OK);
+    await fs.unlink(filePath);
+  } catch (error: any) {
+    // If file doesn't exist (ENOENT), that's okay - it might have been removed already
+    if (error.code !== 'ENOENT') {
+      console.error(`Failed to remove file: ${filePath}`, error);
+      throw new Error(`Failed to remove file: ${filePath}`);
+    }
+  }
+};
+
+/**
+ * Type definition for uploaded files structure from multer
+ */
+type UploadedFiles = {
+  [fieldname: string]: Express.Multer.File[];
+};
+
+/**
+ * Remove multiple uploaded files from all fields
+ * @param files - Object containing uploaded files grouped by field name
+ * @returns Promise that resolves when all files are removed or rejects on error
+ */
+export const removeUploadedFiles = async (files: UploadedFiles): Promise<void> => {
+  if (!files || Object.keys(files).length === 0) {
+    return;
+  }
+  
+  try {
+    // Create an array of removal promises for all files
+    const removalPromises: Promise<void>[] = [];
+    
+    // Iterate through each field in the files object
+    for (const fieldName in files) {
+      if (Object.prototype.hasOwnProperty.call(files, fieldName)) {
+        const fieldFiles = files[fieldName] || [];
+        
+        // Add removal promise for each file in the field
+        for (const file of fieldFiles) {
+          removalPromises.push(
+            removeSingleUploadedFile(file.path).catch(error => {
+              console.error(`Failed to remove file: ${file.path}`, error);
+              // Don't throw - continue removing other files
+            })
+          );
+        }
+      }
+    }
+    
+    // Execute all removal promises concurrently
+    await Promise.all(removalPromises);
+  } catch (error: any) {
+    console.error('Error during batch file removal:', error);
+    throw new Error('Failed to remove uploaded files');
+  }
+};
+
+/**
+ * Remove files from specific fields only
+ * @param files - Object containing uploaded files grouped by field name
+ * @param fieldNames - Array of field names to remove files from
+ * @returns Promise that resolves when specified files are removed or rejects on error
+ */
+export const removeFilesFromFields = async (
+  files: UploadedFiles,
+  fieldNames: string[]
+): Promise<void> => {
+  if (!files || fieldNames.length === 0) {
+    return;
+  }
+  
+  try {
+    const removalPromises: Promise<void>[] = [];
+    
+    // Only process files from specified fields
+    for (const fieldName of fieldNames) {
+      const fieldFiles = files[fieldName] || [];
+      
+      for (const file of fieldFiles) {
+        removalPromises.push(
+          removeSingleUploadedFile(file.path).catch(error => {
+            console.error(`Failed to remove file: ${file.path}`, error);
+          })
+        );
+      }
+    }
+    
+    await Promise.all(removalPromises);
+  } catch (error: any) {
+    console.error('Error during field-specific file removal:', error);
+    throw new Error('Failed to remove files from specified fields');
+  }
+};
+
+/**
+ * Clean up uploaded files directory (removes all files in a directory)
+ * @param directoryPath - Path to the directory to clean
+ * @returns Promise that resolves when directory is cleaned or rejects on error
+ */
+export const cleanUploadDirectory = async (directoryPath: string): Promise<void> => {
+  try {
+    // Check if directory exists
+    await fs.access(directoryPath, fs.constants.F_OK);
+    
+    // Read all files in the directory
+    const files = await fs.readdir(directoryPath);
+    
+    // Remove each file
+    const removalPromises = files.map(file => {
+      const filePath = path.join(directoryPath, file);
+      return removeSingleUploadedFile(filePath).catch(error => {
+        console.error(`Failed to remove file: ${filePath}`, error);
+      });
+    });
+    
+    await Promise.all(removalPromises);
+  } catch (error: any) {
+    // If directory doesn't exist, that's okay
+    if (error.code !== 'ENOENT') {
+      console.error('Error cleaning upload directory:', error);
+      throw new Error(`Failed to clean directory: ${directoryPath}`);
+    }
+  }
+};

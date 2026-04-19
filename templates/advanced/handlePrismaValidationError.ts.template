@@ -1,0 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { TErrorSource, TGenericErrorResponse } from '../interfaces/errors';
+
+/**
+ * Handle Prisma validation error
+ * @param err - Prisma error object
+ * @returns Formatted error response
+ */
+const handlePrismaValidationError = (err: any): TGenericErrorResponse => {
+  const errorSources: TErrorSource[] = [
+    {
+      path: err.meta?.target || 'validation',
+      message: err.message || 'Validation failed'
+    }
+  ];
+
+  return {
+    statusCode: 400,
+    message: 'Validation Error',
+    errorSources
+  };
+};
+
+export default handlePrismaValidationError;
